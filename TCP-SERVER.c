@@ -35,7 +35,7 @@
 	#include <string.h> //for memset
 	void OSInit( void ) {}
 	void OSCleanup( void ) {}
-  
+
 #endif
 
 int initialization();
