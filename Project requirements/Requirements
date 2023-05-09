@@ -1,7 +1,7 @@
 ➡ TCP
 ✓    • TCP server luistert op poort 22
 ✘    • TCP server accepteert meerdere verbindingen
-✘    • TCP server achterhaalt IP adres van client
+✓    • TCP server achterhaalt IP adres van client //getaddrinfo
 ✘    • TCP server logt IP adres in logs
 ✘    • TCP server start een HTTP client per nieuwe verbinding
 ✘    • TCP server accepteert gegevens van client en logt ze in logs
