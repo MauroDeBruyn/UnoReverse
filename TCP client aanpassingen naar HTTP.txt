@@ -1,2 +1,0 @@
-int getaddrinfo_return = getaddrinfo( "ip opvragen via ping ip-apicom in cmd, "80", &internet_address_setup, &internet_address_result ); //Ergens ip-apicom invoegen
-number_of_bytes_send = send( internet_socket, "GET /json/192.168.0.1/ HTTP/1.0\r\nHost: ip-api.com\r\n\r\n", aantal bytes weet ik nie, 0 );

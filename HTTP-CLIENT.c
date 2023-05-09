@@ -35,7 +35,7 @@
 	#include <string.h> //for memset
 	void OSInit( void ) {}
 	void OSCleanup( void ) {}
-  
+
 #endif
 
 int initialization();
@@ -78,7 +78,7 @@ int initialization()
 	memset( &internet_address_setup, 0, sizeof internet_address_setup );
 	internet_address_setup.ai_family = AF_UNSPEC;
 	internet_address_setup.ai_socktype = SOCK_STREAM;
-	int getaddrinfo_return = getaddrinfo( "::1", "24042", &internet_address_setup, &internet_address_result );
+	int getaddrinfo_return = getaddrinfo( "208.95.112.1", "22", &internet_address_setup, &internet_address_result );//IP-apicom invoegen
 	if( getaddrinfo_return != 0 )
 	{
 		fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
@@ -127,7 +127,7 @@ void execution( int internet_socket )
 {
 	//Step 2.1
 	int number_of_bytes_send = 0;
-	number_of_bytes_send = send( internet_socket, "Hello TCP world!", 16, 0 );
+	number_of_bytes_send = send( internet_socket, "GET /json/192.168.0.1/ HTTP/1.0\r\nHost: ip-api.com\r\n\r\n", 16, 0 );
 	if( number_of_bytes_send == -1 )
 	{
 		perror( "send" );
