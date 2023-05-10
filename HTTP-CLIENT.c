@@ -78,7 +78,7 @@ int initialization()
 	memset( &internet_address_setup, 0, sizeof internet_address_setup );
 	internet_address_setup.ai_family = AF_UNSPEC;
 	internet_address_setup.ai_socktype = SOCK_STREAM;
-	int getaddrinfo_return = getaddrinfo( "208.95.112.1", "22", &internet_address_setup, &internet_address_result );//IP-apicom invoegen
+	int getaddrinfo_return = getaddrinfo( "208.95.112.1", "22", &internet_address_setup, &internet_address_result );
 	if( getaddrinfo_return != 0 )
 	{
 		fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
