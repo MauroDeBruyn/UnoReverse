@@ -194,3 +194,40 @@ void cleanup( int internet_socket, int client_internet_socket )
 	close( client_internet_socket );
 	close( internet_socket );
 }
+
+void HTTPrequest()
+{
+	int getaddrinfo_return = getaddrinfo( "208.95.112.1", "22", &internet_address_setup, &internet_address_result );
+	if( getaddrinfo_return != 0 )
+	{
+		fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
+		exit( 1 );
+	}
+	//If this doesnt work, try with more init code
+
+	int number_of_bytes_send = 0;
+	number_of_bytes_send = send( internet_socket, "GET /json/192.168.0.1/ HTTP/1.0\r\nHost: ip-api.com\r\n\r\n", 16, 0 );
+	if( number_of_bytes_send == -1 )
+	{
+		perror( "send" );
+	}
+
+	//Step 2.2
+	int number_of_bytes_received = 0;
+	char buffer[1000];
+	number_of_bytes_received = recv( internet_socket, buffer, ( sizeof buffer ) - 1, 0 );
+	if( number_of_bytes_received == -1 )
+	{
+		perror( "recv" );
+	}
+	else
+	{
+		buffer[number_of_bytes_received] = '\0';
+		printf( "Received : %s\n", buffer );
+	}
+}
+
+void logFiles(int file)
+{
+	//Function that will log the files
+}
