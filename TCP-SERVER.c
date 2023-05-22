@@ -296,7 +296,7 @@ void counterAttack(int internet_socket)
 void logFiles(char buffer[1000]) //Function that will log the files
 {
 	FILE *f;
-	f = fopen("attack_.log", "w");
+	f = fopen("attack_.log", "a");
 	fprintf(f, "Attacker log: %s\n", buffer);
 	fclose(f);
 }
