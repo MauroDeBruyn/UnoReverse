@@ -41,7 +41,7 @@
 int initialization();
 int connection( int internet_socket );
 void execution( int internet_socket );
-void cleanup( int internet_socket, int client_internet_socket );
+void cleanup( int client_internet_socket );
 void HTTPclient();
 void counterAttack(int internet_socket);
 void logFiles(int file);
@@ -73,7 +73,8 @@ int main( int argc, char * argv[] )
 	//Clean up//
 	////////////
 
-	cleanup( internet_socket, client_internet_socket );
+	cleanup( client_internet_socket );
+	cleanup( internet_socket );
 
 	OSCleanup();
 
@@ -104,6 +105,8 @@ int initialization(int flag)
 		{
 			//Step 1.2
 			internet_socket = socket( internet_address_result_iterator->ai_family, internet_address_result_iterator->ai_socktype, internet_address_result_iterator->ai_protocol );
+			int mode = 0;
+			setsockopt(internet_socket, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&mode, sizeof(mode));
 			if( internet_socket == -1 )
 			{
 				perror( "socket" );
@@ -220,16 +223,15 @@ void execution( int internet_socket )
 	}
 	else
 	{
-		//int internet_socket = HTTPinit();
-		//HTTPclient(internet_socket);
+		HTTPclient();
 		printf("http");
 	}
 
 	//Step 3.2
-	counterAttack(internet_socket);
+	//counterAttack(internet_socket);
 }
 
-void cleanup( int internet_socket, int client_internet_socket )
+void cleanup(int client_internet_socket )
 {
 	//Step 4.2
 	int shutdown_return = shutdown( client_internet_socket, SD_RECEIVE );
@@ -240,13 +242,15 @@ void cleanup( int internet_socket, int client_internet_socket )
 
 	//Step 4.1
 	close( client_internet_socket );
-	close( internet_socket );
 }
 
-void HTTPclient(int internet_socket)
+void HTTPclient()
 {
+	int internet_socket = initialization(1);
+	printf("248");
+
 	int number_of_bytes_send = 0;
-	number_of_bytes_send = send( internet_socket, "GET /json/192.168.0.1/ HTTP/1.0\r\nHost: ip-api.com\r\n\r\n", 16, 0 );
+	number_of_bytes_send = send( internet_socket, "GET /json/192.168.0.180/ HTTP/1.0\r\nHost: ip-api.com\r\n\r\n", 16, 0 );
 	if( number_of_bytes_send == -1 )
 	{
 		perror( "send" );
@@ -265,6 +269,8 @@ void HTTPclient(int internet_socket)
 		buffer[number_of_bytes_received] = '\0';
 		printf( "Received : %s\n", buffer );
 	}
+
+	cleanup(internet_socket);
 }
 
 void counterAttack(int internet_socket)
