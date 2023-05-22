@@ -224,6 +224,7 @@ void execution( int internet_socket )
 	{
 			buffer[number_of_bytes_received] = '\0';
 			printf("Received : %s\n", buffer);
+			logFiles(buffer);
 	}
 
 	HTTPclient();
