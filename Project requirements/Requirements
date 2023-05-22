@@ -5,7 +5,7 @@
 ✘    • TCP server logt IP adres in logs
 ✘    • TCP server start een HTTP client per nieuwe verbinding
 ✘    • TCP server accepteert gegevens van client en logt ze in logs
-✘    • TCP server stuurt zoveel mogelijk gegevens naar de openstaande verbinding
+✓    • TCP server stuurt zoveel mogelijk gegevens naar de openstaande verbinding
 ✘    • TCP server houdt een teller bij hoeveel gegevens succesvol zijn afgeleverd en logt deze bij het sluiten van de verbinding in logs
 ✘    • TCP server sluit de verbinding nadat de client de verbinding sluit
 ✘    • TCP server kan meerdere verbindingen simultaan verwerken
