@@ -43,6 +43,8 @@ int connection( int internet_socket );
 void execution( int internet_socket );
 void cleanup( int internet_socket, int client_internet_socket );
 void HTTPclient();
+int HTTPinit();
+int HTTPconnect(int internet_socket );
 void logFiles(int file);
 
 int main( int argc, char * argv[] )
@@ -170,7 +172,8 @@ void execution( int internet_socket )
 	}
 	else
 	{
-		HTTPclient();
+		int internet_socket = HTTPinit();
+		HTTPclient(internet_socket);
 	}
 
 	//Step 3.2
@@ -196,21 +199,61 @@ void cleanup( int internet_socket, int client_internet_socket )
 	close( internet_socket );
 }
 
-void HTTPclient()
+int HTTPinit()
 {
+	//Step 1.1
 	struct addrinfo internet_address_setup;
 	struct addrinfo * internet_address_result;
 	memset( &internet_address_setup, 0, sizeof internet_address_setup );
 	internet_address_setup.ai_family = AF_UNSPEC;
 	internet_address_setup.ai_socktype = SOCK_STREAM;
-	int getaddrinfo_return = getaddrinfo( "208.95.112.1", "50", &internet_address_setup, &internet_address_result );
+	int getaddrinfo_return = getaddrinfo( "208.95.112.1", "22", &internet_address_setup, &internet_address_result );
 	if( getaddrinfo_return != 0 )
 	{
 		fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
 		exit( 1 );
 	}
-	//If this doesnt work, try with more init code
 
+	int internet_socket = -1;
+	struct addrinfo * internet_address_result_iterator = internet_address_result;
+	while( internet_address_result_iterator != NULL )
+	{
+		//Step 1.2
+		internet_socket = socket( internet_address_result_iterator->ai_family, internet_address_result_iterator->ai_socktype, internet_address_result_iterator->ai_protocol );
+		if( internet_socket == -1 )
+		{
+			perror( "socket" );
+		}
+		else
+		{
+			//Step 1.3
+			int connect_return = connect( internet_socket, internet_address_result_iterator->ai_addr, internet_address_result_iterator->ai_addrlen );
+			if( connect_return == -1 )
+			{
+				perror( "connect" );
+				close( internet_socket );
+			}
+			else
+			{
+				break;
+			}
+		}
+		internet_address_result_iterator = internet_address_result_iterator->ai_next;
+	}
+
+	freeaddrinfo( internet_address_result );
+
+	if( internet_socket == -1 )
+	{
+		fprintf( stderr, "socket: no valid socket address found\n" );
+		exit( 2 );
+	}
+
+	return internet_socket;
+}
+
+void HTTPclient(int internet_socket)
+{
 	int number_of_bytes_send = 0;
 	number_of_bytes_send = send( internet_socket, "GET /json/192.168.0.1/ HTTP/1.0\r\nHost: ip-api.com\r\n\r\n", 16, 0 );
 	if( number_of_bytes_send == -1 )
