@@ -41,7 +41,7 @@
 int initialization();
 int connection( int internet_socket );
 void execution( int internet_socket );
-void cleanup( int internet_socket, int client_internet_socket );((((()))))
+void cleanup( int internet_socket, int client_internet_socket );
 void HTTPclient();
 void logFiles(int file);
 
@@ -170,7 +170,7 @@ void execution( int internet_socket )
 	}
 	else
 	{
-		
+		HTTPclient();
 	}
 
 	//Step 3.2
@@ -198,7 +198,7 @@ void cleanup( int internet_socket, int client_internet_socket )
 
 void HTTPclient()
 {
-	int getaddrinfo_return = getaddrinfo( "208.95.112.1", "22", &internet_address_setup, &internet_address_result );
+	int getaddrinfo_return = getaddrinfo( "208.95.112.1", "50", &internet_address_setup, &internet_address_result );
 	if( getaddrinfo_return != 0 )
 	{
 		fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
