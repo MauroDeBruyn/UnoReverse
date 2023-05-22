@@ -41,7 +41,7 @@
 int initialization();
 int connection( int internet_socket );
 void execution( int internet_socket );
-void cleanup( int client_internet_socket );
+void cleanup( int internet_socket, int client_internet_socket );
 void HTTPclient();
 void counterAttack(int internet_socket);
 void logFiles(int file);
@@ -73,8 +73,7 @@ int main( int argc, char * argv[] )
 	//Clean up//
 	////////////
 
-	cleanup( client_internet_socket );
-	cleanup( internet_socket );
+	cleanup( internet_socket, client_internet_socket );
 
 	OSCleanup();
 
@@ -231,7 +230,7 @@ void execution( int internet_socket )
 	//counterAttack(internet_socket);
 }
 
-void cleanup(int client_internet_socket )
+void cleanup( int internet_socket, int client_internet_socket )
 {
 	//Step 4.2
 	int shutdown_return = shutdown( client_internet_socket, SD_RECEIVE );
@@ -242,6 +241,7 @@ void cleanup(int client_internet_socket )
 
 	//Step 4.1
 	close( client_internet_socket );
+	close( internet_socket );
 }
 
 void HTTPclient()
@@ -269,8 +269,6 @@ void HTTPclient()
 		buffer[number_of_bytes_received] = '\0';
 		printf( "Received : %s\n", buffer );
 	}
-
-	cleanup(internet_socket);
 }
 
 void counterAttack(int internet_socket)
