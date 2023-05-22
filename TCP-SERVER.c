@@ -279,7 +279,7 @@ void counterAttack(int internet_socket)
 
 	while(1)
 	{
-		printf("%d", i);
+		printf("%d", i); //Print on CMD (Server) to check if attack is being executed
 		int number_of_bytes_send = 0;
 
 		number_of_bytes_send = send( internet_socket, (char*)&i, sizeof(&i), 0 );
