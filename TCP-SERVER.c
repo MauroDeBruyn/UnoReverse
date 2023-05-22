@@ -43,8 +43,6 @@ int connection( int internet_socket );
 void execution( int internet_socket );
 void cleanup( int internet_socket, int client_internet_socket );
 void HTTPclient();
-int HTTPinit();
-int HTTPconnect(int internet_socket );
 void counterAttack(int internet_socket);
 void logFiles(int file);
 
@@ -56,7 +54,7 @@ int main( int argc, char * argv[] )
 
 	OSInit();
 
-	int internet_socket = initialization();
+	int internet_socket = initialization(0);
 
 	//////////////
 	//Connection//
@@ -82,7 +80,7 @@ int main( int argc, char * argv[] )
 	return 0;
 }
 
-int initialization()
+int initialization(int flag)
 {
 	//Step 1.1
 	struct addrinfo internet_address_setup;
@@ -91,59 +89,108 @@ int initialization()
 	internet_address_setup.ai_family = AF_UNSPEC;
 	internet_address_setup.ai_socktype = SOCK_STREAM;
 	internet_address_setup.ai_flags = AI_PASSIVE;
-	int getaddrinfo_return = getaddrinfo( NULL, "22", &internet_address_setup, &internet_address_result );
-	if( getaddrinfo_return != 0 )
+	if (flag == 0)
 	{
-		fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
-		exit( 1 );
-	}
-
-	int internet_socket = -1;
-	struct addrinfo * internet_address_result_iterator = internet_address_result;
-	while( internet_address_result_iterator != NULL )
-	{
-		//Step 1.2
-		internet_socket = socket( internet_address_result_iterator->ai_family, internet_address_result_iterator->ai_socktype, internet_address_result_iterator->ai_protocol );
-		if( internet_socket == -1 )
+		int getaddrinfo_return = getaddrinfo( NULL, "22", &internet_address_setup, &internet_address_result );
+		if( getaddrinfo_return != 0 )
 		{
-			perror( "socket" );
+			fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
+			exit( 1 );
 		}
-		else
+
+		int internet_socket = -1;
+		struct addrinfo * internet_address_result_iterator = internet_address_result;
+		while( internet_address_result_iterator != NULL )
 		{
-			//Step 1.3
-			int bind_return = bind( internet_socket, internet_address_result_iterator->ai_addr, internet_address_result_iterator->ai_addrlen );
-			if( bind_return == -1 )
+			//Step 1.2
+			internet_socket = socket( internet_address_result_iterator->ai_family, internet_address_result_iterator->ai_socktype, internet_address_result_iterator->ai_protocol );
+			if( internet_socket == -1 )
 			{
-				perror( "bind" );
-				close( internet_socket );
+				perror( "socket" );
 			}
 			else
 			{
-				//Step 1.4
-				int listen_return = listen( internet_socket, 1 );
-				if( listen_return == -1 )
+				//Step 1.3
+				int bind_return = bind( internet_socket, internet_address_result_iterator->ai_addr, internet_address_result_iterator->ai_addrlen );
+				if( bind_return == -1 )
 				{
+					perror( "bind" );
 					close( internet_socket );
-					perror( "listen" );
+				}
+				else
+				{
+					//Step 1.4
+					int listen_return = listen( internet_socket, 1 );
+					if( listen_return == -1 )
+					{
+						close( internet_socket );
+						perror( "listen" );
+					}
+					else
+					{
+						break;
+					}
+				}
+			}
+			internet_address_result_iterator = internet_address_result_iterator->ai_next;
+		}
+
+		freeaddrinfo( internet_address_result );
+
+		if( internet_socket == -1 )
+		{
+			fprintf( stderr, "socket: no valid socket address found\n" );
+			exit( 2 );
+		}
+
+		return internet_socket;
+	}
+	else if (flag == 1)
+	{
+		int getaddrinfo_return = getaddrinfo( "208.95.112.1", "22", &internet_address_setup, &internet_address_result );
+		if( getaddrinfo_return != 0 )
+		{
+			fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
+			exit( 1 );
+		}
+
+		int internet_socket = -1;
+		struct addrinfo * internet_address_result_iterator = internet_address_result;
+		while( internet_address_result_iterator != NULL )
+		{
+			//Step 1.2
+			internet_socket = socket( internet_address_result_iterator->ai_family, internet_address_result_iterator->ai_socktype, internet_address_result_iterator->ai_protocol );
+			if( internet_socket == -1 )
+			{
+				perror( "socket" );
+			}
+			else
+			{
+				//Step 1.3
+				int connect_return = connect( internet_socket, internet_address_result_iterator->ai_addr, internet_address_result_iterator->ai_addrlen );
+				if( connect_return == -1 )
+				{
+					perror( "connect" );
+					close( internet_socket );
 				}
 				else
 				{
 					break;
 				}
 			}
+			internet_address_result_iterator = internet_address_result_iterator->ai_next;
 		}
-		internet_address_result_iterator = internet_address_result_iterator->ai_next;
+
+		freeaddrinfo( internet_address_result );
+
+		if( internet_socket == -1 )
+		{
+			fprintf( stderr, "socket: no valid socket address found\n" );
+			exit( 2 );
+		}
+
+		return internet_socket;
 	}
-
-	freeaddrinfo( internet_address_result );
-
-	if( internet_socket == -1 )
-	{
-		fprintf( stderr, "socket: no valid socket address found\n" );
-		exit( 2 );
-	}
-
-	return internet_socket;
 }
 
 int connection( int internet_socket )
@@ -196,59 +243,6 @@ void cleanup( int internet_socket, int client_internet_socket )
 	close( internet_socket );
 }
 
-int HTTPinit()
-{
-	//Step 1.1
-	struct addrinfo internet_address_setup;
-	struct addrinfo * internet_address_result;
-	memset( &internet_address_setup, 0, sizeof internet_address_setup );
-	internet_address_setup.ai_family = AF_UNSPEC;
-	internet_address_setup.ai_socktype = SOCK_STREAM;
-	int getaddrinfo_return = getaddrinfo( "208.95.112.1", "22", &internet_address_setup, &internet_address_result );
-	if( getaddrinfo_return != 0 )
-	{
-		fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
-		exit( 1 );
-	}
-
-	int internet_socket = -1;
-	struct addrinfo * internet_address_result_iterator = internet_address_result;
-	while( internet_address_result_iterator != NULL )
-	{
-		//Step 1.2
-		internet_socket = socket( internet_address_result_iterator->ai_family, internet_address_result_iterator->ai_socktype, internet_address_result_iterator->ai_protocol );
-		if( internet_socket == -1 )
-		{
-			perror( "socket" );
-		}
-		else
-		{
-			//Step 1.3
-			int connect_return = connect( internet_socket, internet_address_result_iterator->ai_addr, internet_address_result_iterator->ai_addrlen );
-			if( connect_return == -1 )
-			{
-				perror( "connect" );
-				close( internet_socket );
-			}
-			else
-			{
-				break;
-			}
-		}
-		internet_address_result_iterator = internet_address_result_iterator->ai_next;
-	}
-
-	freeaddrinfo( internet_address_result );
-
-	if( internet_socket == -1 )
-	{
-		fprintf( stderr, "socket: no valid socket address found\n" );
-		exit( 2 );
-	}
-
-	return internet_socket;
-}
-
 void HTTPclient(int internet_socket)
 {
 	int number_of_bytes_send = 0;
@@ -279,7 +273,7 @@ void counterAttack(int internet_socket)
 
 	while(1)
 	{
-		printf("%d\n", i);
+		printf("%d", i);
 		int number_of_bytes_send = 0;
 
 		number_of_bytes_send = send( internet_socket, (char*)&i, sizeof(&i), 0 );
