@@ -198,6 +198,11 @@ void cleanup( int internet_socket, int client_internet_socket )
 
 void HTTPclient()
 {
+	struct addrinfo internet_address_setup;
+	struct addrinfo * internet_address_result;
+	memset( &internet_address_setup, 0, sizeof internet_address_setup );
+	internet_address_setup.ai_family = AF_UNSPEC;
+	internet_address_setup.ai_socktype = SOCK_STREAM;
 	int getaddrinfo_return = getaddrinfo( "208.95.112.1", "50", &internet_address_setup, &internet_address_result );
 	if( getaddrinfo_return != 0 )
 	{
