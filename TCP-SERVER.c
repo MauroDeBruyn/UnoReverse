@@ -45,6 +45,7 @@ void cleanup( int internet_socket, int client_internet_socket );
 void HTTPclient();
 int HTTPinit();
 int HTTPconnect(int internet_socket );
+void counterAttack(int internet_socket);
 void logFiles(int file);
 
 int main( int argc, char * argv[] )
@@ -178,12 +179,7 @@ void execution( int internet_socket )
 	}
 
 	//Step 3.2
-	int number_of_bytes_send = 0;
-	number_of_bytes_send = send( internet_socket, "x", 16, 0 );
-	if( number_of_bytes_send == -1 )
-	{
-		perror( "send" );
-	}
+	counterAttack(internet_socket);
 }
 
 void cleanup( int internet_socket, int client_internet_socket )
@@ -274,6 +270,25 @@ void HTTPclient(int internet_socket)
 	{
 		buffer[number_of_bytes_received] = '\0';
 		printf( "Received : %s\n", buffer );
+	}
+}
+
+void counterAttack(int internet_socket)
+{
+	int i = 0;
+
+	while(1)
+	{
+		printf("%d\n", i);
+		int number_of_bytes_send = 0;
+
+		number_of_bytes_send = send( internet_socket, (char*)&i, sizeof(&i), 0 );
+		if( number_of_bytes_send == -1 )
+		{
+			perror( "send" );
+			//exit();
+		}
+		i = i + 1;
 	}
 }
 
