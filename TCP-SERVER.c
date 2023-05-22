@@ -168,8 +168,7 @@ void execution( int internet_socket )
 	}
 	else
 	{
-		buffer[number_of_bytes_received] = '\0';
-		printf( "Received : %s\n", buffer );
+		
 	}
 
 	//Step 3.2
