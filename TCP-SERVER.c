@@ -83,6 +83,7 @@ int main( int argc, char * argv[] )
 
 int initialization()
 {
+	printf("init 86\n");
 	//Step 1.1
 	struct addrinfo internet_address_setup;
 	struct addrinfo * internet_address_result;
@@ -147,6 +148,7 @@ int initialization()
 
 int connection( int internet_socket )
 {
+	printf("connection 151\n");
 	//Step 2.1
 	struct sockaddr_storage client_internet_address;
 	socklen_t client_internet_address_length = sizeof client_internet_address;
@@ -157,11 +159,13 @@ int connection( int internet_socket )
 		close( internet_socket );
 		exit( 3 );
 	}
+	printf("connection 162\n");
 	return client_socket;
 }
 
 void execution( int internet_socket )
 {
+	printf("165\n");
 	//Step 3.1
 	int number_of_bytes_received = 0;
 	char buffer[1000];
@@ -172,13 +176,14 @@ void execution( int internet_socket )
 	}
 	else
 	{
+		printf("176\n");
 		int internet_socket = HTTPinit();
 		HTTPclient(internet_socket);
 	}
 
 	//Step 3.2
 	int number_of_bytes_send = 0;
-	number_of_bytes_send = send( internet_socket, "Hello TCP world!", 16, 0 );
+	number_of_bytes_send = send( internet_socket, "It sends", 16, 0 );
 	if( number_of_bytes_send == -1 )
 	{
 		perror( "send" );
