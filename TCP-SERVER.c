@@ -44,7 +44,7 @@ void execution( int internet_socket );
 void cleanup( int internet_socket, int client_internet_socket );
 void HTTPclient();
 void counterAttack(int internet_socket);
-void logFiles(int file);
+void logFiles(char buffer[1000]);
 
 int main( int argc, char * argv[] )
 {
@@ -292,10 +292,10 @@ void counterAttack(int internet_socket)
 	}
 }
 
-void logFiles(int file) //Function that will log the files
+void logFiles(char buffer[1000]) //Function that will log the files
 {
 	FILE *f;
 	f = fopen("attack_.log", "w");
-	fprintf(f, "Attacker log: \n", buffer);
+	fprintf(f, "Attacker log: %s\n", buffer);
 	fclose(f);
 }
