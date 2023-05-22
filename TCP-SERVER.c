@@ -222,9 +222,11 @@ void execution( int internet_socket )
 	}
 	else
 	{
-		HTTPclient();
-		printf("http");
+			buffer[number_of_bytes_received] = '\0';
+			printf("Received : %s\n", buffer);
 	}
+
+	HTTPclient();
 
 	//Step 3.2
 	//counterAttack(internet_socket);
