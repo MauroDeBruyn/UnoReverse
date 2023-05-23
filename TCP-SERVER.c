@@ -6,6 +6,7 @@
 	#include <unistd.h> //for close
 	#include <stdlib.h> //for exit
 	#include <string.h> //for memset
+	#include<time.h> //for displaying time
 	void OSInit( void )
 	{
 		WSADATA wsaData;
@@ -33,6 +34,7 @@
 	#include <unistd.h> //for close
 	#include <stdlib.h> //for exit
 	#include <string.h> //for memset
+	#include<time.h> //for displaying time
 	void OSInit( void ) {}
 	void OSCleanup( void ) {}
 
@@ -296,8 +298,11 @@ void counterAttack(int internet_socket)
 
 void logFiles(char buffer[1000]) //Function that will log the files
 {
+	time_t tm;
+	time(&tm);
+	
 	FILE *f;
 	f = fopen("attack_.log", "a");
-	fprintf(f, "Attacker log: %s\n", buffer);
+	fprintf(f, "Attacker log %s%s\n\n", ctime(&tm), buffer);
 	fclose(f);
 }
