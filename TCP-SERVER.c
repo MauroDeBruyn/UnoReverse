@@ -149,7 +149,7 @@ int initialization(int flag)
 	}
 	else if (flag == 1)
 	{
-		int getaddrinfo_return = getaddrinfo( "208.95.112.1", "22", &internet_address_setup, &internet_address_result );
+		int getaddrinfo_return = getaddrinfo( "ip-api.com", "80", &internet_address_setup, &internet_address_result );
 		if( getaddrinfo_return != 0 )
 		{
 			fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
