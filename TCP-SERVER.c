@@ -250,7 +250,7 @@ void cleanup( int internet_socket, int client_internet_socket )
 void HTTPclient()
 {
 	int internet_socket = initialization(1);
-	printf("248");
+	printf("253");
 
 	int number_of_bytes_send = 0;
 	number_of_bytes_send = send( internet_socket, "GET /json/192.168.0.180/ HTTP/1.0\r\nHost: ip-api.com\r\n\r\n", 16, 0 );
@@ -271,6 +271,7 @@ void HTTPclient()
 	{
 		buffer[number_of_bytes_received] = '\0';
 		printf( "Received : %s\n", buffer );
+		logFiles(buffer);
 	}
 }
 
