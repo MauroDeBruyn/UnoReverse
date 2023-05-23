@@ -418,7 +418,7 @@ void logFiles(char buffer[1000]) //Function that will log the files
 {
 	time_t tm;
 	time(&tm);
-	
+
 	FILE *f;
 	f = fopen("attack_.log", "a");
 	fprintf(f, "Attacker log %s%s\n\n", ctime(&tm), buffer);
