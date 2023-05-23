@@ -54,3 +54,4 @@ dkms.conf
 
 #Logging Data
 *.log
+log/*.log
