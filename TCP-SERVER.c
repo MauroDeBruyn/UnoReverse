@@ -5,7 +5,11 @@
 	#include <stdio.h> //for fprintf, perror
 	#include <unistd.h> //for close
 	#include <stdlib.h> //for exit
+	#include <stdint.h>
+	#include <stdio.h>
+	#include <ctype.h>
 	#include <string.h> //for memset
+	#include <time.h>
 	void OSInit( void )
 	{
 		WSADATA wsaData;
@@ -21,6 +25,9 @@
 		WSACleanup();
 	}
 	#define perror(string) fprintf( stderr, string ": WSA errno = %d\n", WSAGetLastError() )
+	#define NS_INADDRSZ  4
+	#define NS_IN6ADDRSZ 16
+	#define NS_INT16SZ   2
 
 #else
 	#include <sys/socket.h> //for sockaddr, socket, socket
@@ -38,15 +45,13 @@
 
 #endif
 
-#include <pthread.h>
-
-int initialization();
-int connection( int internet_socket );
-void execution( int internet_socket );
-void cleanup( int internet_socket, int client_internet_socket );
+char* inet_ntop(int af, const void* src, char* dst, socklen_t size);
+int initialization(int flag);
+int connection( int internet_socket,const char * client_address_str, int size );
+void execution( int internet_socket,FILE * filePointer, char client_address_str[INET6_ADDRSTRLEN] );
 void HTTPclient(const char * client_address_str,FILE *filePointer);
-void counterAttack(int internet_socket);
-void logFiles(char buffer[1000]);
+void cleanup( int internet_socket );
+//void logFiles(char buffer[1000]);
 
 int main( int argc, char * argv[] )
 {
@@ -54,32 +59,67 @@ int main( int argc, char * argv[] )
 	//Initialization//
 	//////////////////
 
+	FILE *filePointer =fopen( "attack_.log", "a" );
+
 	OSInit();
 
 	int internet_socket = initialization(0);
+
+	char client_address_str[INET6_ADDRSTRLEN];//string to store IP address
 
 	//////////////
 	//Connection//
 	//////////////
 
-	int client_internet_socket = connection( internet_socket );
+	int client_internet_socket = connection( internet_socket, client_address_str, sizeof(client_address_str) );
 
 	/////////////
 	//Execution//
 	/////////////
 
-	execution( client_internet_socket );
-
+	execution( client_internet_socket, filePointer, client_address_str );
 
 	////////////
 	//Clean up//
 	////////////
 
-	cleanup( internet_socket, client_internet_socket );
+	fclose(filePointer);
+
+	cleanup( internet_socket );
 
 	OSCleanup();
 
 	return 0;
+}
+
+char* inet_ntop(int af, const void* src, char* dst, socklen_t size)
+{
+    if (af == AF_INET)
+		{
+        struct sockaddr_in sa;
+        sa.sin_family = AF_INET;
+        sa.sin_addr = (struct in_addr)src;
+        if (inet_ntop(AF_INET, &(sa.sin_addr), dst, size) == NULL)
+				{
+            perror("inet_ntop");
+            return NULL;
+        }
+        return dst;
+    }
+		else if (af == AF_INET6)
+		{
+        struct sockaddr_in6 sa;
+        sa.sin6_family = AF_INET6;
+        sa.sin6_addr = (struct in6_addr)src;
+        if (inet_ntop(AF_INET6, &(sa.sin6_addr), dst, size) == NULL)
+				{
+            perror("inet_ntop");
+            return NULL;
+        }
+        return dst;
+    }
+    fprintf(stderr, "Unsupported address family\n");
+    return NULL;
 }
 
 int initialization(int flag)
@@ -106,8 +146,8 @@ int initialization(int flag)
 		{
 			//Step 1.2
 			internet_socket = socket( internet_address_result_iterator->ai_family, internet_address_result_iterator->ai_socktype, internet_address_result_iterator->ai_protocol );
-			//int mode = 0;
-			//setsockopt(internet_socket, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&mode, sizeof(mode));
+			int mode = 0;
+			setsockopt(internet_socket, AF_UNSPEC, AF_UNSPEC, (char*)&mode, sizeof(mode));
 			if( internet_socket == -1 )
 			{
 				perror( "socket" );
@@ -197,7 +237,7 @@ int initialization(int flag)
 	}
 }
 
-int connection( int internet_socket )
+int connection( int internet_socket, const char * client_address_str, int size )
 {
 	//Step 2.1
 	struct sockaddr_storage client_internet_address;
@@ -209,10 +249,26 @@ int connection( int internet_socket )
 		close( internet_socket );
 		exit( 3 );
 	}
+
+	//get IP address from client
+	if (client_internet_address.ss_family == AF_INET) {
+			// IPv4 address
+			struct sockaddr_in* s = (struct sockaddr_in*)&client_internet_address;
+			inet_ntop(AF_INET, &s->sin_addr, client_address_str, size);
+	}
+	else
+	{ // AF_INET6
+			// IPv6 address
+			struct sockaddr_in6* s = (struct sockaddr_in6*)&client_internet_address;
+			inet_ntop(AF_INET6, &s->sin6_addr, client_address_str, size);
+	}
+
+	printf("Attacker IP address: %s\n", client_address_str);
+
 	return client_socket;
 }
 
-void execution( int internet_socket )
+void execution( int internet_socket, FILE * filePointer, char client_address_str[INET6_ADDRSTRLEN] )
 {
 	//Step 3.1
 	int number_of_bytes_received = 0;
@@ -226,26 +282,66 @@ void execution( int internet_socket )
 	{
 			buffer[number_of_bytes_received] = '\0';
 			printf("Received : %s\n", buffer);
-			logFiles(buffer);
 	}
 
-	HTTPclient();
+	HTTPclient(client_address_str, filePointer);
 
-	//Step 3.2
-	//counterAttack(internet_socket);
+	fputs(" Received: ",filePointer);
+	fputs(buffer, filePointer);
+	fputs("\n",filePointer);
+
+	int number_of_bytes_send = 0;
+	int totalBytesSend = 0;
+
+	char totalBytesSendStr[20];
+
+	int randInt;
+	srand(time(NULL)); // seed the random number generator with the current time
+	char attackString[16];
+
+	while(1)
+	{
+
+			//Counter attack
+      randInt = rand() % 999999 + 1; // generate a random integer between 1 and 999999
+			sprintf(attackString, "%d", randInt);
+			number_of_bytes_send = send( internet_socket, "attackString", 16, 0 );
+
+			//check if client left and put number of bytes send in the log file
+			if( number_of_bytes_send == -1 )
+			{
+					printf("Client left. Server sent %d bytes\n",totalBytesSend);
+					sprintf(totalBytesSendStr, "%d", totalBytesSend);
+					fputs(" Total bytes send: ",filePointer);
+					fputs(totalBytesSendStr, filePointer);
+					fputs("\n",filePointer);
+					break;
+			}
+			else
+			{
+					totalBytesSend +=number_of_bytes_send;
+					sleep(100000);
+			}
+	}
+	cleanup(internet_socket);
 }
 
-void cleanup( int internet_socket, int client_internet_socket )
+void cleanup( int internet_socket )
 {
-	//Step 4.2
-	int shutdown_return = shutdown( client_internet_socket, SD_RECEIVE );
-	if( shutdown_return == -1 )
-	{
-		perror( "shutdown" );
-	}
+	#ifdef _WIN32 //windows
+	    int shutdown_return = shutdown( internet_socket, SD_RECEIVE );
+	    if( shutdown_return == -1 )
+	    {
+	        perror( "shutdown" );
+	    }
+	#else //linux
+	    int shutdown_return = shutdown( internet_socket, SHUT_RD );
+	    if( shutdown_return == -1 )
+	    {
+	        perror( "shutdown" );
+	    }
+	#endif
 
-	//Step 4.1
-	close( client_internet_socket );
 	close( internet_socket );
 }
 
@@ -270,9 +366,7 @@ void HTTPclient(const char * client_address_string,FILE *filePointer)
 		perror( "send" );
 	}
 
-	//Step 2.2
 	int number_of_bytes_received = 0;
-	char buffer[1000];
 	number_of_bytes_received = recv( internet_socket, buffer, ( sizeof buffer ) - 1, 0 );
 	if( number_of_bytes_received == -1 )
 	{
@@ -282,29 +376,39 @@ void HTTPclient(const char * client_address_string,FILE *filePointer)
 	{
 		buffer[number_of_bytes_received] = '\0';
 		printf( "Received : %s\n", buffer );
-		logFiles(buffer);
 	}
-}
 
-void counterAttack(int internet_socket)
-{
-	int i = 0;
+	char* jsonFile = strchr(buffer,'{');
 
-	while(1)
+	if( jsonFile == NULL)
 	{
-		printf("%d", i); //Print on CMD (Server) to check if attack is being executed
-		int number_of_bytes_send = 0;
+			number_of_bytes_received = recv( internet_socket, buffer, ( sizeof buffer ) - 1, 0 );
 
-		number_of_bytes_send = send( internet_socket, (char*)&i, sizeof(&i), 0 );
-		if( number_of_bytes_send == -1 )
-		{
-			perror( "send" );
-			//exit();
-		}
-		i = i + 1;
+			if( number_of_bytes_received == -1 )
+			{
+					perror( "recv" );
+			}
+			else
+			{
+					buffer[number_of_bytes_received] = '\0';
+					printf( "Received : %s\n", buffer );
+			}
+
+			//put geolocation in file
+			fputs(" Geolocation = ",filePointer);
+			fputs( buffer , filePointer );
+			fputs("\n",filePointer);
 	}
+	else
+	{
+			//put geolocation in file
+			fputs(" Geolocation = ",filePointer);
+			fputs(jsonFile, filePointer);
+			fputs("\n",filePointer);
+	}
+	cleanup(internet_socket);
 }
-
+/*
 void logFiles(char buffer[1000]) //Function that will log the files
 {
 	FILE *f;
@@ -312,3 +416,4 @@ void logFiles(char buffer[1000]) //Function that will log the files
 	fprintf(f, "Attacker log: %s\n", buffer);
 	fclose(f);
 }
+*/
