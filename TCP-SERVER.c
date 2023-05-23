@@ -28,10 +28,6 @@
 	{
 		WSACleanup();
 	}
-	#define perror(string) fprintf( stderr, string ": WSA errno = %d\n", WSAGetLastError() )
-	#define NS_INADDRSZ  4
-	#define NS_IN6ADDRSZ 16
-	#define NS_INT16SZ   2
 
 #else
 	#include <sys/socket.h> //for sockaddr, socket, socket
