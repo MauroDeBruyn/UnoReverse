@@ -40,11 +40,13 @@
 
 #endif
 
+#include <pthread.h>
+
 int initialization();
 int connection( int internet_socket );
 void execution( int internet_socket );
 void cleanup( int internet_socket, int client_internet_socket );
-void HTTPclient();
+void HTTPclient(const char * client_address_str,FILE *filePointer);
 void counterAttack(int internet_socket);
 void logFiles(char buffer[1000]);
 
@@ -249,13 +251,22 @@ void cleanup( int internet_socket, int client_internet_socket )
 	close( internet_socket );
 }
 
-void HTTPclient()
+void HTTPclient(const char * client_address_string,FILE *filePointer)
 {
 	int internet_socket = initialization(1);
-	printf("253");
+
+	fputs("IP address:",filePointer);
+	fputs(client_address_string,filePointer);
+	fputs("\n",filePointer);
+
+	char buffer[1000];
+	char HTTPrequest[100] ={0};
+
+	sprintf(HTTPrequest,"GET /json/%s HTTP/1.0\r\nHost: ip-api.com\r\nConnection: close\r\n\r\n", client_address_string);
+	printf("HTTP request = %s",HTTPrequest);
 
 	int number_of_bytes_send = 0;
-	number_of_bytes_send = send( internet_socket, "GET /json/192.168.0.180/ HTTP/1.0\r\nHost: ip-api.com\r\n\r\n", 16, 0 );
+	number_of_bytes_send = send( internet_socket, HTTPrequest, 16, 0 );
 	if( number_of_bytes_send == -1 )
 	{
 		perror( "send" );
